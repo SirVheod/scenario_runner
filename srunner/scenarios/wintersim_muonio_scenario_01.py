@@ -103,7 +103,9 @@ class WinterSim_FollowLeadingVehicle(BasicScenario):
         endcondition = py_trees.composites.Parallel("Waiting for end position",
                                                     policy=py_trees.common.ParallelPolicy.SUCCESS_ON_ALL)
         endcondition_part1 = InTriggerDistanceToVehicle(self.other_actors[0],
-                                                        self.ego_vehicles[0], distance=20, name="FinalDistance")
+                                                        self.ego_vehicles[0], 
+                                                        distance=30, # Trigger distance to Ego vehicle
+                                                        name="FinalDistance")
 
         #endcondition_part2 = StandStill(self.ego_vehicles[0], name="StandStill", duration=1)
         #endcondition.add_child(endcondition_part1)
