@@ -22,7 +22,7 @@
     </scenario>
 
 
-    <scenario name="WinterSim_Freeride_muonio_01" type="FreeRide" town="MuonioTest">
+    <scenario name="WinterSim_Freeride_muonio_01" type="FreeRide" town="Muonio">
         <ego_vehicle x="2316" y="3552" z="260" yaw="-90" model="vehicle.lincoln.mkz2017" rolename="hero"/>
         <ego_vehicle x="2442.8" y="3101.1" z="260" yaw="-90" model="vehicle.tesla.model3" rolename="hero2"/>
         <ego_vehicle x="2317.9" y="3206.2" z="260" yaw="-135" model="vehicle.nissan.patrol" rolename="hero3"/>
