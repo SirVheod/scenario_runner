@@ -7,7 +7,7 @@
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
 """
-Welcome to WinterSim Muonio control. This is similiar to manual_control.py but with added arguments.
+Welcome to WinterSim Muonio control.
 
 Use ARROWS or WASD keys for control.
 
@@ -19,6 +19,7 @@ Use ARROWS or WASD keys for control.
     P            : toggle autopilot
     M            : toggle manual transmission
     ,/.          : gear up/down
+    CTRL + W     : toggle constant velocity mode at 60 km/h
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
@@ -30,6 +31,10 @@ Use ARROWS or WASD keys for control.
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
+    Backspace    : change vehicle
+
+    V            : Select next map layer (Shift+V reverse)
+    B            : Load current selected map layer (Shift+B to unload)
 
     R            : toggle recording images to disk
 
@@ -51,8 +56,11 @@ from __future__ import print_function
 
 import carla
 
-from examples.manual_control import (World, HUD, KeyboardControl, CameraManager,
-                                     CollisionSensor, LaneInvasionSensor, GnssSensor, IMUSensor)
+# These are required
+from WinterSim.wintersim_sensors import CollisionSensor, LaneInvasionSensor, GnssSensor, IMUSensor
+from WinterSim.wintersim_scenario_control import World, KeyboardControl, CameraManager
+from WinterSim.wintersim_hud import HUD_WINTERSIM as HUD
+from WinterSim.wintersim_hud import Weather
 
 import os
 import argparse
@@ -67,81 +75,6 @@ import pygame
 def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
-
-# ==============================================================================
-# -- World ---------------------------------------------------------------------
-# ==============================================================================
-
-class WorldSR(World):
-
-    restarted = False
-
-    def restart(self):
-
-        if self.restarted:
-            return
-        self.restarted = True
-
-        self.player_max_speed = 1.589
-        self.player_max_speed_fast = 3.713
-
-        # Keep same camera config if the camera manager exists.
-        cam_index = self.camera_manager.index if self.camera_manager is not None else 0
-        cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
-
-        # Get the ego vehicle
-        while self.player is None:
-            print("Waiting for the ego vehicle...")
-            time.sleep(1)
-            possible_vehicles = self.world.get_actors().filter('vehicle.*')
-            for vehicle in possible_vehicles:
-                if vehicle.attributes['role_name'] == "hero":
-                    print("Ego vehicle found")
-                    self.player = vehicle
-                    break
-        
-        self.player_name = self.player.type_id
-
-        # Set up the sensors.
-        self.collision_sensor = CollisionSensor(self.player, self.hud)
-        self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
-        self.gnss_sensor = GnssSensor(self.player)
-        self.imu_sensor = IMUSensor(self.player)
-        self.camera_manager = CameraManager(self.player, self.hud, self._gamma)
-        self.camera_manager.transform_index = cam_pos_index
-        self.camera_manager.set_sensor(cam_index, notify=False)
-        actor_type = get_actor_display_name(self.player)
-        self.hud.notification(actor_type)
-
-    def tick(self, clock):
-        if len(self.world.get_actors().filter(self.player_name)) < 1:
-            return False
-
-        self.hud.tick(self, clock)
-        return True
-
-    def update_frictionDirectly(self, friction):
-        """Updates all vehicle wheel physics. 
-        Lower value means more slippery road. 2.0 is default.
-        """
-        actors = self.world.get_actors()
-        print("Friction value updated to: {}".format(friction))
-        for actor in actors:
-            if 'vehicle' in actor.type_id:
-
-                # set_simulate_physics must be True for all vehicle actors otherwise UE4/Carla crashes
-                # when we call get_physics_control()
-                actor.set_simulate_physics(enabled=True) 
-                
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-
-                wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
-                physics_control = actor.get_physics_control()
-                physics_control.wheels = wheels
-                actor.apply_physics_control(physics_control)
 
 # ==============================================================================
 # -- game_loop() ---------------------------------------------------------------
@@ -160,11 +93,20 @@ def game_loop(args):
             (args.width, args.height),
             pygame.HWSURFACE | pygame.DOUBLEBUF)
 
-        hud = HUD(args.width, args.height)
-        world = WorldSR(client.get_world(), hud, args)
+        hud = HUD(args.width, args.height, display)
+        hud.make_sliders()
+        world = World(client.get_world(), hud, args)
         controller = KeyboardControl(world, args.autopilot)
 
         clock = pygame.time.Clock()
+
+        world.preset = world._weather_presets[0]                            # start weather preset
+        hud.update_sliders(world.preset[0])                                 # update sliders to positions according to preset
+        controller = KeyboardControl(world, args.autopilot)
+        weather = Weather(client.get_world().get_weather())
+
+        world.camera_manager.specific_camera_angle(1)                       # change camera angle
+        world.specific_weather_preset(20)                                   # change to specific weather preset for testing
 
         friction = float(args.friction)
         if friction != 2.0:
@@ -176,20 +118,26 @@ def game_loop(args):
             # If --c argument given, enable constant velocity
             world.player.enable_constant_velocity(carla.Vector3D(7, 0, 0))
             world.constant_velocity_enabled = True
-            world.hud.notification("Enabled Constant Velocity Mode at 25 km/h")
 
         while True:
             clock.tick_busy_loop(60)
-            if controller.parse_events(client, world, clock):
+            if controller.parse_events(client, world, clock, hud):
                 return
-            if not world.tick(clock):
-                return
+            world.tick(clock, hud)
             world.render(display)
+            if hud.is_hud:
+                for s in hud.sliders: 
+                    if s.hit:                                           # if slider is being touched
+                        s.move()                                        # move slider
+                        weather.tick(hud, world.preset[0])              # update weather object
+                        client.get_world().set_weather(weather.weather) # send weather
+                for s in hud.sliders:
+                    s.draw(display, s)
             pygame.display.flip()
 
     finally:
-        if (world and world.recording_enabled):
-            client.stop_recorder()
+        #if (world and world.recording_enabled):
+            #client.stop_recorder()
 
         if world is not None:
             world.destroy()

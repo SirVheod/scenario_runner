@@ -30,4 +30,13 @@
     <scenario name="OtherLeadingVehicle_10" type="OtherLeadingVehicle" town="Town05">
         <ego_vehicle x="188.9" y="-100" z="0" yaw="90" model="vehicle.lincoln.mkz2017" />
     </scenario>
+
+
+    <!-- WinterSim Scenarios -->
+
+     <scenario name="WinterSim_OtherLeadingVehicle" type="OtherLeadingVehicle" town="Muonio">
+        <ego_vehicle x="2316" y="3555" z="250" yaw="-80" model="vehicle.lincoln.mkz2017" />
+        <weather cloudiness="0" precipitation="0" precipitation_deposits="0" wind_intensity="0" sun_azimuth_angle="0" sun_altitude_angle="75" />
+    </scenario>
+
 </scenarios>

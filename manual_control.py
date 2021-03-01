@@ -126,6 +126,29 @@ class WorldSR(World):
         self.hud.tick(self, clock)
         return True
 
+    def update_frictionDirectly(self, friction):
+        """Updates all vehicle wheel physics. 
+        Lower value means more slippery road. 2.0 is default.
+        """
+        actors = self.world.get_actors()
+        print("Friction value updated to: {}".format(friction))
+        for actor in actors:
+            if 'vehicle' in actor.type_id:
+
+                # set_simulate_physics must be True for all vehicle actors otherwise UE4/Carla crashes
+                # when we call get_physics_control()
+                actor.set_simulate_physics(enabled=True) 
+                
+                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+
+                wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
+                physics_control = actor.get_physics_control()
+                physics_control.wheels = wheels
+                actor.apply_physics_control(physics_control)
+
 # ==============================================================================
 # -- game_loop() ---------------------------------------------------------------
 # ==============================================================================
@@ -146,6 +169,19 @@ def game_loop(args):
         hud = HUD(args.width, args.height)
         world = WorldSR(client.get_world(), hud, args)
         controller = KeyboardControl(world, args.autopilot)
+
+        friction = float(args.friction)
+        if friction != 2.0:
+            # If friction is not 2.0 (default), Update vehicle wheel physics
+            world.update_frictionDirectly(friction)
+
+        constantVelocity = bool(args.c)
+        if constantVelocity:
+            # If --c argument given, enable constant velocity
+            world.player.enable_constant_velocity(carla.Vector3D(7, 0, 0))
+            world.constant_velocity_enabled = True
+            #world.hud.notification("Enabled Constant Velocity Mode at 25 km/h")
+
 
         clock = pygame.time.Clock()
         while True:
@@ -201,6 +237,20 @@ def main():
         metavar='WIDTHxHEIGHT',
         default='1280x720',
         help='window resolution (default: 1280x720)')
+
+    # WinterSim added argument
+    argparser.add_argument(
+        '--friction',
+        metavar='Friction',
+        default='2.0',
+        help='Friction value (Default: 2.0)')
+
+    # WinterSim added argument
+    argparser.add_argument(
+        '--c',
+        action='store_true',
+        help='enable constant velocity')
+
     args = argparser.parse_args()
 
     args.rolename = 'hero'      # Needed for CARLA version

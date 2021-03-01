@@ -7,12 +7,12 @@ https://carla-scenariorunner.readthedocs.io/en/latest/getting_scenariorunner/
 Execute one of these scripts in Carla ScenarioRunner root folder.
 
 python scenario_runner.py --scenario WinterSim_followscenario_01 --reloadWorld
-python scenario_runner.py --scenario WinterSim_followscenario_02 --reloadWorld
-python scenario_runner.py --scenario WinterSim_CutInFrom_right_Lane --reloadWorld
+python scenario_runner.py --scenario WinterSim_OtherLeadingVehicle --reloadWorld
 python scenario_runner.py --scenario WinterSim_Freeride_muonio_01 --reloadWorld
 
 
 Open another terminal window and execute one of these in Carla ScenarioRunner root folder.
+If you don't have WinterSim carla python scripts then use manual_control.py instead.
 
 python wintersim_muonio_control.py --a --c --fr 1.0
 python wintersim_muonio_control.py --a --c --fr 1.5
