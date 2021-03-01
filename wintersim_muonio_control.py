@@ -105,10 +105,10 @@ def game_loop(args):
         controller = KeyboardControl(world, args.autopilot)
         weather = Weather(client.get_world().get_weather())
 
-        world.camera_manager.specific_camera_angle(1)                       # change camera angle
-        world.specific_weather_preset(20)                                   # change to specific weather preset for testing
+        world.camera_manager.specific_camera_angle(1)                        # change camera angle
+        #world.specific_weather_preset(20)                                   # change to specific weather preset for testing
 
-        friction = float(args.friction)
+        friction = float(args.fr)
         if friction != 2.0:
             # If friction is not 2.0 (default), Update vehicle wheel physics
             world.update_frictionDirectly(friction)
@@ -179,7 +179,7 @@ def main():
 
     # WinterSim added argument
     argparser.add_argument(
-        '--friction',
+        '--fr',
         metavar='Friction',
         default='2.0',
         help='Friction value (Default: 2.0)')

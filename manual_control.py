@@ -170,7 +170,7 @@ def game_loop(args):
         world = WorldSR(client.get_world(), hud, args)
         controller = KeyboardControl(world, args.autopilot)
 
-        friction = float(args.friction)
+        friction = float(args.fr)
         if friction != 2.0:
             # If friction is not 2.0 (default), Update vehicle wheel physics
             world.update_frictionDirectly(friction)
@@ -240,7 +240,7 @@ def main():
 
     # WinterSim added argument
     argparser.add_argument(
-        '--friction',
+        '--fr',
         metavar='Friction',
         default='2.0',
         help='Friction value (Default: 2.0)')
