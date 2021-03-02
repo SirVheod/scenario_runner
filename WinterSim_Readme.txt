@@ -1,4 +1,4 @@
---- Carla ScenarionRunner install ---
+--- Carla ScenarionRunner installion ---
 
 https://carla-scenariorunner.readthedocs.io/en/latest/getting_scenariorunner/
 
@@ -26,13 +26,13 @@ Arguments:
 Enables autopilot
 
 --c
-Enables constant velocity (25 km/h)
+Enables constant velocity (~25 km/h)
 
 --fr [value]
 Updates all actor vehicles wheel physics friction value. This way we can simulate road iciness. 
 Lower value means more slippery road. 2.0 is default.
 
-If you want drive completely manually remove --a and --c arguments.
+If you want to drive completely manually remove all arguments.
 python wintersim_muonio_control
 
 
