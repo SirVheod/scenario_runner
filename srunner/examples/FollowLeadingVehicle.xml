@@ -72,7 +72,7 @@
     <!-- WinterSim Scenarios -->
 
      <scenario name="WinterSim_followscenario_01" type="WinterSim_FollowLeadingVehicle" town="Muonio">
-        <ego_vehicle x="2471.3" y="3297.3" z="240" yaw="-155" model="vehicle.lincoln.mkz2017" />
+        <ego_vehicle x="2466.4" y="3296.8" z="240" yaw="-155" model="vehicle.lincoln.mkz2017" />
         <weather cloudiness="0" precipitation="0" precipitation_deposits="0" wind_intensity="0" sun_azimuth_angle="0" sun_altitude_angle="75" />
     </scenario>
     
