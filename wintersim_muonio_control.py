@@ -113,11 +113,11 @@ def game_loop(args):
             # If friction is not 2.0 (default), Update vehicle wheel physics
             world.update_frictionDirectly(friction)
 
-        constant_velocity = bool(args.c)
-        if constant_velocity:
-            # If --c argument given, enable constant velocity
-            world.player.enable_constant_velocity(carla.Vector3D(7, 0, 0))
-            world.constant_velocity_enabled = True
+        # constant_velocity = bool(args.c)
+        # if constant_velocity:
+        #     # If --c argument given, enable constant velocity
+        #     world.player.enable_constant_velocity(carla.Vector3D(7, 0, 0))
+        #     world.constant_velocity_enabled = True
 
         while True:
             clock.tick_busy_loop(60)
